@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -17,6 +19,11 @@ namespace CosmosGettingStartedTutorial.Models
     public string ApiVersion { get; set; }
     public bool Success { get; set; }
     public int ResponseTime { get; set; }
+
+    public override string ToString()
+    {
+      return JsonConvert.SerializeObject(this, new JsonSerializerSettings() { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+    }
   }
 }
 

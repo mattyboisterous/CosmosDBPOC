@@ -10,6 +10,7 @@ namespace CosmosGettingStartedTutorial.Repositories.Interfaces
   public interface IApiRequestRepository : IRepositoryBase
   {
     Task<ApiRequest> CreateApiRequest(ApiRequest request);
+    Task<IEnumerable<ApiRequest>> GetAllApiRequests();
     Task<IEnumerable<ApiRequest>> GetAllApiRequestsByApplication(string appId);
   }
 }

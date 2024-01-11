@@ -33,6 +33,28 @@ namespace CosmosGettingStartedTutorial.Repositories
       }
     }
 
+    public async Task<IEnumerable<ApiRequest>> GetAllApiRequests()
+    {
+      var sqlQueryText = $"SELECT * FROM req";
+
+      QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
+      FeedIterator<ApiRequest> queryResultSetIterator = CosmosContainer.GetItemQueryIterator<ApiRequest>(queryDefinition);
+
+      List<ApiRequest> requestList = new List<ApiRequest>();
+
+      if (queryResultSetIterator.HasMoreResults)
+      {
+        FeedResponse<ApiRequest> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+
+        foreach (var r in currentResultSet)
+        {
+          requestList.Add(r);
+        }
+      }
+
+      return requestList;
+    }
+
     public async Task<IEnumerable<ApiRequest>> GetAllApiRequestsByApplication(string appId)
     {
       var sqlQueryText = $"SELECT * FROM req WHERE req.appId = '{appId}'";

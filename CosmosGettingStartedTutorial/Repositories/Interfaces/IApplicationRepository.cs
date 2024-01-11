@@ -11,6 +11,7 @@ namespace CosmosGettingStartedTutorial.Repositories.Interfaces
   {
     Task<Application> CreateApplication(Application app);
     Task<Application> GetApplication(string appId);
+    Task<IEnumerable<Application>> GetAllApplications();
     Task<IEnumerable<Application>> GetAllApplicationsByUser(string userId);
 
     Task<Application> CreateApiKey(string appId, ApiKey apiKey);

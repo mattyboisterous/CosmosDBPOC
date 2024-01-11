@@ -48,7 +48,28 @@ namespace CosmosGettingStartedTutorial
       }
     }
 
-    public async Task GetStartedDemoAsync()
+    private void WriteOptionsToConsole()
+    {
+      Console.WriteLine();
+      Console.WriteLine("OPTIONS:");
+      Console.WriteLine();
+      Console.WriteLine("a: Get all Applications");
+      Console.WriteLine("b: Get Applications by userId");
+      Console.WriteLine("c: Get Application by appId");
+      Console.WriteLine("d: Create application");
+      Console.WriteLine("e: Create Api key");
+      Console.WriteLine("f: Regenerate Api key");
+      Console.WriteLine("f: Update Api key label");
+      Console.WriteLine("h: Delete (retire) Api key");
+      Console.WriteLine("i: Get all Api Requests");
+      Console.WriteLine("j: Get all Api Requests by appId");
+      Console.WriteLine("k: Create Api Request");
+
+
+      Console.WriteLine("x or SPACE: Exit");
+    }
+
+    private async Task GetStartedDemoAsync()
     {
       Console.Write("Initialising repositories...");
 
@@ -73,14 +94,19 @@ namespace CosmosGettingStartedTutorial
         switch (key.KeyChar)
         {
           case 'a':
-            Console.Write("Please enter UserId: ");
-            var userId = Console.ReadLine();
-
-            var applications = await ApplicationRepository.GetAllApplicationsByUser(userId);
+            var applications = await ApplicationRepository.GetAllApplications();
             WriteApplicationsToConsole(applications.ToList());
             break;
 
           case 'b':
+            Console.Write("Please enter UserId: ");
+            var userId = Console.ReadLine();
+
+            applications = await ApplicationRepository.GetAllApplicationsByUser(userId);
+            WriteApplicationsToConsole(applications.ToList());
+            break;
+
+          case 'c':
             Console.Write("Please enter AppId: ");
             var appId = Console.ReadLine();
 
@@ -91,7 +117,7 @@ namespace CosmosGettingStartedTutorial
             }
             break;
 
-          case 'c':
+          case 'd':
             Console.Write("Please enter UserId: ");
             userId = Console.ReadLine();
             Console.Write("Please enter AppId: ");
@@ -115,7 +141,7 @@ namespace CosmosGettingStartedTutorial
             }
             break;
 
-          case 'd':
+          case 'e':
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
 
@@ -139,7 +165,7 @@ namespace CosmosGettingStartedTutorial
             }
             break;
 
-          case 'e':
+          case 'f':
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
 
@@ -154,7 +180,7 @@ namespace CosmosGettingStartedTutorial
             }
             break;
 
-          case 'f':
+          case 'g':
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
             Console.Write("Please enter ApiKey: ");
@@ -170,7 +196,7 @@ namespace CosmosGettingStartedTutorial
             }
             break;
 
-          case 'g':
+          case 'h':
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
             Console.Write("Please enter ApiKey: ");
@@ -182,16 +208,22 @@ namespace CosmosGettingStartedTutorial
             }
             break;
 
-          case 'h':
-            Console.Write("Please enter AppId: ");
-            appId = Console.ReadLine();
-
-            var requests = await ApiRequestRepository.GetAllApiRequestsByApplication(appId);
+          case 'i':
+            var requests = await ApiRequestRepository.GetAllApiRequests();
 
             WriteApiRequestsToConsole(requests.ToList());
             break;
 
-          case 'i':
+          case 'j':
+            Console.Write("Please enter AppId: ");
+            appId = Console.ReadLine();
+
+            requests = await ApiRequestRepository.GetAllApiRequestsByApplication(appId);
+
+            WriteApiRequestsToConsole(requests.ToList());
+            break;
+
+          case 'k':
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
 
@@ -223,25 +255,6 @@ namespace CosmosGettingStartedTutorial
       }
 
       ExitDemo();
-    }
-
-    private void WriteOptionsToConsole()
-    {
-      Console.WriteLine();
-      Console.WriteLine("OPTIONS:");
-      Console.WriteLine();
-      Console.WriteLine("a: Get Applications by userId");
-      Console.WriteLine("b: Get Application by appId");
-      Console.WriteLine("c: Create application");
-      Console.WriteLine("d: Create Api key");
-      Console.WriteLine("e: Regenerate Api key");
-      Console.WriteLine("f: Update Api key label");
-      Console.WriteLine("g: Delete (retire) Api key");
-      Console.WriteLine("h: Get all Api Requests by appId");
-      Console.WriteLine("i: Create Api Request");
-
-
-      Console.WriteLine("x or SPACE: Exit");
     }
 
     private void ExitDemo()

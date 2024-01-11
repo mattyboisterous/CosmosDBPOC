@@ -56,6 +56,28 @@ namespace CosmosGettingStartedTutorial.Repositories
       return appList;
     }
 
+    public async Task<IEnumerable<Application>> GetAllApplications()
+    {
+      var sqlQueryText = $"SELECT * FROM app";
+
+      QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
+      FeedIterator<Application> queryResultSetIterator = CosmosContainer.GetItemQueryIterator<Application>(queryDefinition);
+
+      List<Application> appList = new List<Application>();
+
+      if (queryResultSetIterator.HasMoreResults)
+      {
+        FeedResponse<Application> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+
+        foreach (var c in currentResultSet)
+        {
+          appList.Add(c);
+        }
+      }
+
+      return appList;
+    }
+
     public async Task<Application> GetApplication(string appId)
     {
       var sqlQueryText = $"SELECT * FROM app WHERE app.appId = '{appId}'";
