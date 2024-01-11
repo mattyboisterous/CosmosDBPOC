@@ -8,10 +8,10 @@ namespace CosmosGettingStartedTutorial.Models
 {
   public class Application
   {
-    public string Id { get; set; } // {AppKey}.1...
-    public string PartitionKey { get; set; }  // AppKey...large cardinality...
-    public string ObjectId { get; set; }
-    public string AppKey { get; set; }
+    public string Id { get; set; } // {AppId}.1...
+    public string PartitionKey { get; set; }  // AppId...large cardinality...
+    public string UserId { get; set; }
+    public string AppId { get; set; }
     public string AppName { get; set; }
     public ApiKey[] ApiKeys { get; set; }
 
@@ -24,7 +24,7 @@ namespace CosmosGettingStartedTutorial.Models
   //{
   //  "id": "3503ff40-d9c5-47b0-b59f-941197893126.1",
   //  "partitionKey": "3503ff40-d9c5-47b0-b59f-941197893126",
-  //  "objectId": "2a7ae06c-da16-49ca-ac8b-a6e8bfa4511a",
+  //  "userId": "2a7ae06c-da16-49ca-ac8b-a6e8bfa4511a",
   //  "appKey": "3503ff40-d9c5-47b0-b59f-941197893126",
   //  "appName": "QTeachers",
   //  "apiKeys": [
