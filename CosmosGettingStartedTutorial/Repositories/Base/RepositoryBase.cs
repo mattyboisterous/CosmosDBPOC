@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CosmosGettingStartedTutorial.Repositories.Base
 {
-  public class RepositoryBase : IRepositoryBase
+  public class RepositoryBase
   {
     public string EndpointUri { get; set; }
     public string PrimaryKey { get; set; }
@@ -63,6 +63,11 @@ namespace CosmosGettingStartedTutorial.Repositories.Base
     {
       // create this container if it does not alreay exist...
       CosmosContainer = await CosmosDataBase.CreateContainerIfNotExistsAsync(ContainerId, "/partitionKey");
+    }
+
+    public void Dispose()
+    {
+      CosmosClient.Dispose();
     }
   }
 }

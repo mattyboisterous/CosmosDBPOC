@@ -6,6 +6,9 @@ using System.Net;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Fluent;
 using System.Linq;
+using CosmosGettingStartedTutorial.Repositories.Interfaces;
+using CosmosGettingStartedTutorial.Repositories;
+using CosmosGettingStartedTutorial.Models;
 
 namespace CosmosGettingStartedTutorial
 {
@@ -17,18 +20,17 @@ namespace CosmosGettingStartedTutorial
     // The primary key for the Azure Cosmos account.
     private static readonly string PrimaryKey = ConfigurationManager.AppSettings["PrimaryKey"];
 
-    // The Cosmos client instance
-    private CosmosClient cosmosClient;
+    //// The Cosmos client instance
+    //private CosmosClient cosmosClient;
 
-    // The database we will create
-    private Database database;
+    //// The database we will create
+    //private Database database;
 
-    // The container we will create.
-    private Container container;
+    //// The container we will create.
+    //private Container container;
 
-    // The name of the database and container we will create
-    private string databaseId = "DevPortal";
-    private string containerId = "Clients";
+    private IApplicationRepository ApplicationRepository { get; set; }
+    private IApiRequestRepository ApiRequestRepository { get; set; }
 
     public static async Task Main(string[] args)
     {
@@ -57,18 +59,15 @@ namespace CosmosGettingStartedTutorial
 
     public async Task GetStartedDemoAsync()
     {
-      Console.Write("Initialising client...");
+      Console.Write("Initialising repositories...");
 
-      // initialise Cosmo client...
-      this.cosmosClient = new CosmosClientBuilder(EndpointUri, PrimaryKey)
-        .WithSerializerOptions(new CosmosSerializationOptions { PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase })
-        .Build();
+      ApplicationRepository = new ApplicationRepository(EndpointUri, PrimaryKey, "Application");
+      ApiRequestRepository = new ApiRequestRepository(EndpointUri, PrimaryKey, "ApiRequest");
 
       Console.WriteLine("Done.");
-      Console.Write("Initialising db, container...");
-
-      await this.CreateDatabaseAsync();
-      await this.CreateContainerAsync();
+      Console.Write("Initialising dbs, containers...");
+      await ApplicationRepository.Initialise();
+      await ApiRequestRepository.Initialise();
 
       Console.WriteLine("Done.");
 
@@ -83,118 +82,112 @@ namespace CosmosGettingStartedTutorial
         switch (key.KeyChar)
         {
           case 'a':
-            var clients = await GetAllClients();
-            WriteClientsToConsole(clients);
+            Console.Write("Please enter UserId: ");
+            var userId = Console.ReadLine();
+
+            var applications = await ApplicationRepository.GetAllApplicationsByUser(userId);
+            WriteApplicationsToConsole(applications.ToList());
             break;
 
           case 'b':
-            Console.Write("Please enter ObjectId: ");
-            var objectId = Console.ReadLine();
+            Console.Write("Please enter AppId: ");
+            var appId = Console.ReadLine();
 
-            if (!string.IsNullOrEmpty(objectId))
+            if (!string.IsNullOrEmpty(appId))
             {
-              var client = await GetClient(objectId);
-              WriteClientToConsole(client);
+              var app = await ApplicationRepository.GetApplication(appId);
+              WriteApplicationToConsole(app);
             }
             break;
 
           case 'c':
-            Console.Write("Please enter ObjectId: ");
-            objectId = Console.ReadLine();
+            Console.Write("Please enter UserId: ");
+            userId = Console.ReadLine();
+            Console.Write("Please enter AppId: ");
+            appId = Console.ReadLine();
+            Console.Write("Please enter a name for the application: ");
+            var appName = Console.ReadLine();
 
-            Console.Write("Please enter a name for the client: ");
-            var clientName = Console.ReadLine();
-
-            if (!string.IsNullOrEmpty(objectId) && !string.IsNullOrEmpty(clientName))
+            if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(appName))
             {
-              var client = await CreateClient(new Client()
+              var app = await ApplicationRepository.CreateApplication(new Application()
               {
-                Id = $"{objectId}.1",
-                PartitionKey = objectId,
-                ObjectId = objectId,
-                Name = clientName,
-                ClientKeys = new ClientKey[] { }
+                Id = $"{appId}.1",
+                PartitionKey = appId,
+                UserId = userId,
+                AppId = appId,
+                AppName = appName,
+                ApiKeys = new ApiKey[] { }
               });
 
-              WriteClientToConsole(client);
+              WriteApplicationToConsole(app);
             }
             break;
 
           case 'd':
-            Console.Write("Please enter ObjectId: ");
-            objectId = Console.ReadLine();
+            Console.Write("Please enter AppId: ");
+            appId = Console.ReadLine();
 
             Console.Write("Please enter a name for the new key: ");
             var keyName = Console.ReadLine();
 
-            if (!string.IsNullOrEmpty(objectId) && !string.IsNullOrEmpty(keyName))
+            var now = DateTime.UtcNow;
+
+            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(keyName))
             {
-              var client = await CreateKey(objectId, new ClientKey()
+              var app = await ApplicationRepository.CreateApiKey(appId, new ApiKey()
               {
                 Name = keyName,
+                Scopes = [],
                 Value = Guid.NewGuid().ToString(),
-                Scopes = new string[] { }
+                Created = now,
+                Updated = now
               });
 
-              WriteClientToConsole(client);
+              WriteApplicationToConsole(app);
             }
             break;
 
           case 'e':
-            Console.Write("Please enter ObjectId: ");
-            objectId = Console.ReadLine();
+            Console.Write("Please enter AppId: ");
+            appId = Console.ReadLine();
 
             Console.Write("Please enter the existing value for the key to be regenerated: ");
-            var keyValue = Console.ReadLine();
+            var apiKey = Console.ReadLine();
 
-            if (!string.IsNullOrEmpty(objectId) && !string.IsNullOrEmpty(keyValue))
+            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(apiKey))
             {
-              var client = await RegenerateKey(objectId, new ClientKey()
-              {
-                Value = keyValue
-              });
+              var app = await ApplicationRepository.RegenerateApiKey(appId, apiKey);
 
-              WriteClientToConsole(client);
+              WriteApplicationToConsole(app);
             }
             break;
 
           case 'f':
-            Console.Write("Please enter ObjectId: ");
-            objectId = Console.ReadLine();
-
-            Console.Write("Please enter the key value: ");
-            keyValue = Console.ReadLine();
-
-            Console.Write("Please enter the new key label: ");
+            Console.Write("Please enter AppId: ");
+            appId = Console.ReadLine();
+            Console.Write("Please enter ApiKey: ");
+            apiKey = Console.ReadLine();
+            Console.Write("Please enter a new label name for the api key: ");
             var keyLabel = Console.ReadLine();
 
-            if (!string.IsNullOrEmpty(objectId) && !string.IsNullOrEmpty(keyValue) && !string.IsNullOrEmpty(keyLabel))
+            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(apiKey) && !string.IsNullOrEmpty(keyLabel))
             {
-              var client = await UpdateKey(objectId, new ClientKey()
-              {
-                Value = keyValue,
-                Name = keyLabel
-              });
+              var app = await ApplicationRepository.UpdateApiLabel(appId, apiKey, keyLabel);
 
-              WriteClientToConsole(client);
+              WriteApplicationToConsole(app);
             }
             break;
 
           case 'g':
-            Console.Write("Please enter ObjectId: ");
-            objectId = Console.ReadLine();
+            Console.Write("Please enter AppId: ");
+            appId = Console.ReadLine();
+            Console.Write("Please enter ApiKey: ");
+            apiKey = Console.ReadLine();
 
-            Console.Write("Please enter the key value: ");
-            keyValue = Console.ReadLine();
-
-            if (!string.IsNullOrEmpty(objectId) && !string.IsNullOrEmpty(keyValue))
+            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(apiKey))
             {
-              var client = await DeleteKey(objectId, new ClientKey()
-              {
-                Value = keyValue
-              });
-
-              WriteClientToConsole(client);
+              await ApplicationRepository.RetireApiKey(appId, apiKey);
             }
             break;
         }
@@ -212,9 +205,9 @@ namespace CosmosGettingStartedTutorial
       Console.WriteLine();
       Console.WriteLine("OPTIONS:");
       Console.WriteLine();
-      Console.WriteLine("a: List all clients");
-      Console.WriteLine("b: Get client by Object/UserId");
-      Console.WriteLine("c: Create client");
+      Console.WriteLine("a: Get Applications by userId");
+      Console.WriteLine("b: Get Application by appId");
+      Console.WriteLine("c: Create application");
       Console.WriteLine("d: Create Api key");
       Console.WriteLine("e: Regenerate Api key");
       Console.WriteLine("f: Update Api key label");
@@ -227,217 +220,25 @@ namespace CosmosGettingStartedTutorial
     {
       Console.WriteLine("Demo exiting...");
 
-      // dipose of the Cosmo client...
-      this.cosmosClient.Dispose();
+      // dispose of the Cosmos clients...
+      ApplicationRepository.Dispose();
+      ApiRequestRepository.Dispose();
 
       Environment.Exit(0);
     }
-
-    private async Task CreateDatabaseAsync()
+    
+    private void WriteApplicationsToConsole(List<Application> apps)
     {
-      // Create a new database
-      this.database = await this.cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId);
-
-      //Console.WriteLine("Created Database: {0}\n", this.database.Id);
-    }
-
-    private async Task CreateContainerAsync()
-    {
-      // Create a new container
-      this.container = await this.database.CreateContainerIfNotExistsAsync(containerId, "/partitionKey");
-
-      //Console.WriteLine("Created Container: {0}\n", this.container.Id);
-    }
-
-    private async Task<bool> ClientExists(string objectId)
-    {
-      var sqlQueryText = $"SELECT * FROM c WHERE c.objectId = '{objectId}'";
-
-      Console.WriteLine("Running query: {0}\n", sqlQueryText);
-
-      QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
-      FeedIterator<Client> queryResultSetIterator = this.container.GetItemQueryIterator<Client>(queryDefinition);
-
-      if (queryResultSetIterator.HasMoreResults)
+      foreach (var a in apps)
       {
-        FeedResponse<Client> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-
-        return currentResultSet.Count > 0;
-      }
-
-      return false;
-    }
-
-    private async Task<List<Client>> GetAllClients()
-    {
-      var sqlQueryText = $"SELECT * FROM c";
-      Console.WriteLine("Running query: {0}\n", sqlQueryText);
-
-      QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
-      FeedIterator<Client> queryResultSetIterator = this.container.GetItemQueryIterator<Client>(queryDefinition);
-
-      List<Client> clientList = new List<Client>();
-
-      if (queryResultSetIterator.HasMoreResults)
-      {
-        FeedResponse<Client> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-
-        foreach (var c in currentResultSet)
-        {
-          clientList.Add(c);
-        }
-      }
-
-      return clientList;
-    }
-
-    private async Task<Client> GetClient(string objectId)
-    {
-      var sqlQueryText = $"SELECT * FROM c WHERE c.objectId = '{objectId}'";
-      Console.WriteLine("Running query: {0}\n", sqlQueryText);
-
-      QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
-      FeedIterator<Client> queryResultSetIterator = this.container.GetItemQueryIterator<Client>(queryDefinition);
-
-      if (queryResultSetIterator.HasMoreResults)
-      {
-        FeedResponse<Client> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-
-        return currentResultSet.FirstOrDefault();
-      }
-
-      return null;
-    }
-
-    private async Task<Client> CreateClient(Client client)
-    {
-      try
-      {
-        ItemResponse<Client> dpClientResponse = await this.container.ReadItemAsync<Client>(client.Id, new PartitionKey(client.PartitionKey));
-        Console.WriteLine("Item in database with id: {0} already exists\n", dpClientResponse.Resource.Id);
-
-        return dpClientResponse.Resource;
-      }
-      catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-      {
-        ItemResponse<Client> dpClientResponse = await this.container.CreateItemAsync(client, new PartitionKey(client.PartitionKey), new ItemRequestOptions());
-
-        // Note that after creating the item, we can access the body of the item with the Resource property off the ItemResponse. We can also access the RequestCharge property to see the amount of RUs consumed on this request.
-        Console.WriteLine("Created client in database with id: {0} Operation consumed {1} RUs.\n", dpClientResponse.Resource.Id, dpClientResponse.RequestCharge);
-
-        return dpClientResponse.Resource;
+        WriteApplicationToConsole(a);
       }
     }
 
-    private async Task<Client> CreateKey(string objectId, ClientKey key)
-    {
-      var client = await GetClient(objectId);
-
-      // determine if we have a client and if the key already exists...
-      if (client != null && !client.ClientKeys.Any(ck => ck.Value == key.Value))
-      {
-        // add the new key to the collection and persist...
-        DateTime now = DateTime.UtcNow;
-        key.Expiry = null;
-        key.Created = now;
-        key.Updated = now;
-
-        client.ClientKeys = client.ClientKeys.Append(key).ToArray();
-
-        // replace the item with the updated content...
-        var clientResponse = await this.container.ReplaceItemAsync(client, client.Id, new PartitionKey(client.PartitionKey));
-        Console.WriteLine("Updated Client [{0},{1}].\n \tBody is now: {2}\n", client.Name, client.Id, clientResponse.Resource);
-
-        return clientResponse.Resource;
-      }
-      else
-        return null;
-    }
-
-    private async Task<Client> RegenerateKey(string objectId, ClientKey key)
-    {
-      var client = await GetClient(objectId);
-
-      // determine if we have a client and if the key already exists...
-      if (client != null && client.ClientKeys.Any(ck => ck.Value == key.Value))
-      {
-        // update the appropriate key and persist...
-        var index = client.ClientKeys.TakeWhile(ck => ck.Value != key.Value).Count();
-
-        if (index >= 0)
-        {
-          client.ClientKeys[index].Expiry = null;
-          client.ClientKeys[index].Value = Guid.NewGuid().ToString();
-          client.ClientKeys[index].Updated = DateTime.UtcNow;
-        }
-
-        // replace the item with the updated content...
-        var clientResponse = await this.container.ReplaceItemAsync(client, client.Id, new PartitionKey(client.PartitionKey));
-        Console.WriteLine("Updated Client [{0},{1}].\n \tBody is now: {2}\n", client.Name, client.Id, clientResponse.Resource);
-
-        return clientResponse.Resource;
-      }
-      else
-        return null;
-    }
-
-    private async Task<Client> UpdateKey(string objectId, ClientKey key)
-    {
-      var client = await GetClient(objectId);
-
-      // determine if we have a client and if the key already exists...
-      if (client != null && client.ClientKeys.Any(ck => ck.Value == key.Value))
-      {
-        // update the appropriate key and persist...
-        var keyRef = client.ClientKeys.First(ck => ck.Value == key.Value);
-        keyRef.Name = key.Name;
-        keyRef.Updated = DateTime.UtcNow;
-
-        // replace the item with the updated content...
-        var clientResponse = await this.container.ReplaceItemAsync(client, client.Id, new PartitionKey(client.PartitionKey));
-        Console.WriteLine("Updated Client [{0},{1}].\n \tBody is now: {2}\n", client.Name, client.Id, clientResponse.Resource);
-
-        return clientResponse.Resource;
-      }
-      else
-        return null;
-    }
-
-    private async Task<Client> DeleteKey(string objectId, ClientKey key)
-    {
-      var client = await GetClient(objectId);
-
-      // determine if we have a client and if the key already exists...
-      if (client != null && client.ClientKeys.Any(ck => ck.Value == key.Value))
-      {
-        // update the appropriate key and persist...
-        DateTime now = DateTime.UtcNow;
-
-        var keyRef = client.ClientKeys.First(ck => ck.Value == key.Value);
-        keyRef.Expiry = now;
-        keyRef.Updated = now;
-
-        // replace the item with the updated content...
-        var clientResponse = await this.container.ReplaceItemAsync(client, client.Id, new PartitionKey(client.PartitionKey));
-        Console.WriteLine("Updated Client [{0},{1}].\n \tBody is now: {2}\n", client.Name, client.Id, clientResponse.Resource);
-
-        return clientResponse.Resource;
-      }
-      else
-        return null;
-    }
-    private void WriteClientsToConsole(List<Client> clients)
-    {
-      foreach (var c in clients)
-      {
-        WriteClientToConsole(c);
-      }
-    }
-
-    private void WriteClientToConsole(Client client)
+    private void WriteApplicationToConsole(Application app)
     {
       Console.WriteLine();
-      Console.WriteLine($"{client}");
+      Console.WriteLine($"{app}");
     }
   }
 }

@@ -13,6 +13,10 @@ namespace CosmosGettingStartedTutorial.Repositories
 {
   public class ApplicationRepository : RepositoryBase, IApplicationRepository
   {
+    public ApplicationRepository(string endpointUri, string primaryKey, string containerId)
+      : base(endpointUri, primaryKey, containerId)
+    { }
+
     public async Task<Application> CreateApplication(Application app)
     {
       try
@@ -30,7 +34,7 @@ namespace CosmosGettingStartedTutorial.Repositories
       }
     }
 
-    public async Task<IEnumerable<Application>> GetAllApplicationsByClient(string userId)
+    public async Task<IEnumerable<Application>> GetAllApplicationsByUser(string userId)
     {
       var sqlQueryText = $"SELECT * FROM app WHERE app.userId = '{userId}'";
 
@@ -77,7 +81,10 @@ namespace CosmosGettingStartedTutorial.Repositories
 
       if (application != null && application.ApiKeys != null && !application.ApiKeys.Any(a => a.Value == apiKey.Value))
       {
-        application.ApiKeys.Append(apiKey);
+        var keys = new List<ApiKey>(application.ApiKeys);
+        keys.Add(apiKey);
+
+        application.ApiKeys = keys.ToArray();
 
         var appResponse = await CosmosContainer.ReplaceItemAsync(application, application.Id, new PartitionKey(application.PartitionKey));
 

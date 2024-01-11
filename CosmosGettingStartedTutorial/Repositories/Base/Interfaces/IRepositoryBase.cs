@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CosmosGettingStartedTutorial.Repositories.Base.Interfaces
 {
-  public interface IRepositoryBase
+  public interface IRepositoryBase : IDisposable
   {
     string EndpointUri { get; set; }
     string PrimaryKey { get; set; }
