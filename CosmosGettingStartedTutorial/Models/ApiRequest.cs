@@ -7,8 +7,9 @@ namespace CosmosGettingStartedTutorial.Models
   public class ApiRequest
   {
     public string Id { get; set; } // {Guid}...
-    public string PartitionKey { get; set; }  // AppKey...large cardinality...
-    public DateTime RequestUtcDaeTime { get; set; }
+    public string PartitionKey { get; set; }  // AppId...large cardinality...
+    public DateTime RequestUtcDateTime { get; set; }
+    public string AppId { get; set; }
     public string ApiName { get; set; }
     public string HttpVerb { get; set; }
     public string WebMethod { get; set; }

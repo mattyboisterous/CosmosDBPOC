@@ -20,15 +20,6 @@ namespace CosmosGettingStartedTutorial
     // The primary key for the Azure Cosmos account.
     private static readonly string PrimaryKey = ConfigurationManager.AppSettings["PrimaryKey"];
 
-    //// The Cosmos client instance
-    //private CosmosClient cosmosClient;
-
-    //// The database we will create
-    //private Database database;
-
-    //// The container we will create.
-    //private Container container;
-
     private IApplicationRepository ApplicationRepository { get; set; }
     private IApiRequestRepository ApiRequestRepository { get; set; }
 
@@ -190,6 +181,40 @@ namespace CosmosGettingStartedTutorial
               await ApplicationRepository.RetireApiKey(appId, apiKey);
             }
             break;
+
+          case 'h':
+            Console.Write("Please enter AppId: ");
+            appId = Console.ReadLine();
+
+            var requests = await ApiRequestRepository.GetAllApiRequestsByApplication(appId);
+
+            WriteApiRequestsToConsole(requests.ToList());
+            break;
+
+          case 'i':
+            Console.Write("Please enter AppId: ");
+            appId = Console.ReadLine();
+
+            if (!string.IsNullOrEmpty(appId))
+            {
+              var request = await ApiRequestRepository.CreateApiRequest(new ApiRequest()
+              {
+                Id = Guid.NewGuid().ToString(),
+                PartitionKey = appId,
+                RequestUtcDateTime = DateTime.UtcNow,
+                AppId = appId,
+                ApiName = "",
+                HttpVerb = "GET",
+                WebMethod = "",
+                SubHeader = "",
+                ApiVersion = "1.0",
+                Success = true,
+                ResponseTime = 983
+              });
+
+              WriteApiRequestToConsole(request);
+            }
+            break;
         }
 
         WriteOptionsToConsole();
@@ -212,6 +237,9 @@ namespace CosmosGettingStartedTutorial
       Console.WriteLine("e: Regenerate Api key");
       Console.WriteLine("f: Update Api key label");
       Console.WriteLine("g: Delete (retire) Api key");
+      Console.WriteLine("h: Get all Api Requests by appId");
+      Console.WriteLine("i: Create Api Request");
+
 
       Console.WriteLine("x or SPACE: Exit");
     }
@@ -226,7 +254,7 @@ namespace CosmosGettingStartedTutorial
 
       Environment.Exit(0);
     }
-    
+
     private void WriteApplicationsToConsole(List<Application> apps)
     {
       foreach (var a in apps)
@@ -239,6 +267,20 @@ namespace CosmosGettingStartedTutorial
     {
       Console.WriteLine();
       Console.WriteLine($"{app}");
+    }
+
+    private void WriteApiRequestsToConsole(List<ApiRequest> requests)
+    {
+      foreach (var r in requests)
+      {
+        WriteApiRequestToConsole(r);
+      }
+    }
+
+    private void WriteApiRequestToConsole(ApiRequest request)
+    {
+      Console.WriteLine();
+      Console.WriteLine($"{request}");
     }
   }
 }

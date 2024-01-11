@@ -32,5 +32,27 @@ namespace CosmosGettingStartedTutorial.Repositories
         return dpApiRequestResponse.Resource;
       }
     }
+
+    public async Task<IEnumerable<ApiRequest>> GetAllApiRequestsByApplication(string appId)
+    {
+      var sqlQueryText = $"SELECT * FROM req WHERE req.appId = '{appId}'";
+
+      QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
+      FeedIterator<ApiRequest> queryResultSetIterator = CosmosContainer.GetItemQueryIterator<ApiRequest>(queryDefinition);
+
+      List<ApiRequest> requestList = new List<ApiRequest>();
+
+      if (queryResultSetIterator.HasMoreResults)
+      {
+        FeedResponse<ApiRequest> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+
+        foreach (var r in currentResultSet)
+        {
+          requestList.Add(r);
+        }
+      }
+
+      return requestList;
+    }
   }
 }
