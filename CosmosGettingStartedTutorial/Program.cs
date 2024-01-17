@@ -9,6 +9,7 @@ using System.Linq;
 using CosmosGettingStartedTutorial.Repositories.Interfaces;
 using CosmosGettingStartedTutorial.Repositories;
 using CosmosGettingStartedTutorial.Models;
+using Azure.Core;
 
 namespace CosmosGettingStartedTutorial
 {
@@ -63,7 +64,8 @@ namespace CosmosGettingStartedTutorial
       Console.WriteLine("h: Delete (retire) Api key");
       Console.WriteLine("i: Get all Api Requests");
       Console.WriteLine("j: Get all Api Requests by appId");
-      Console.WriteLine("k: Create Api Request");
+      Console.WriteLine("k: Get all Api Request summaries by appId");
+      Console.WriteLine("l: Create Api Request");
 
 
       Console.WriteLine("x or SPACE: Exit");
@@ -227,6 +229,15 @@ namespace CosmosGettingStartedTutorial
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
 
+            var requestSummaries = await ApiRequestRepository.GetAllApiRequestSummariesByApplication(appId);
+
+            WriteApiRequestSummariesToConsole(requestSummaries.ToList());
+            break;
+
+          case 'l':
+            Console.Write("Please enter AppId: ");
+            appId = Console.ReadLine();
+
             if (!string.IsNullOrEmpty(appId))
             {
               var request = await ApiRequestRepository.CreateApiRequest(new ApiRequest()
@@ -294,6 +305,20 @@ namespace CosmosGettingStartedTutorial
     {
       Console.WriteLine();
       Console.WriteLine($"{request}");
+    }
+
+    private void WriteApiRequestSummariesToConsole(List<ApiRequestSummary> requestSummaries)
+    {
+      foreach (var r in requestSummaries)
+      {
+        WriteApiRequestSummaryToConsole(r);
+      }
+    }
+
+    private void WriteApiRequestSummaryToConsole(ApiRequestSummary requestSummary)
+    {
+      Console.WriteLine();
+      Console.WriteLine($"{requestSummary}");
     }
   }
 }

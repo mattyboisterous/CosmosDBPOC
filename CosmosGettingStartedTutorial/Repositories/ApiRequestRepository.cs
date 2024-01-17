@@ -76,5 +76,30 @@ namespace CosmosGettingStartedTutorial.Repositories
 
       return requestList;
     }
+
+    public async Task<IEnumerable<ApiRequestSummary>> GetAllApiRequestSummariesByApplication(string appId)
+    {
+      var sqlQueryText =
+        $"SELECT req.appId, req.apiName, req.httpVerb, req.apiVersion, req.webMethod, req.subHeader, COUNT(1) AS requests " +
+        $"FROM req WHERE req.appId = '{appId}' " +
+        $"GROUP BY req.appId, req.apiName, req.httpVerb, req.apiVersion, req.webMethod, req.subHeader";
+
+      QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
+      FeedIterator<ApiRequestSummary> queryResultSetIterator = CosmosContainer.GetItemQueryIterator<ApiRequestSummary>(queryDefinition);
+
+      List<ApiRequestSummary> requestSummaries = new List<ApiRequestSummary>();
+
+      if (queryResultSetIterator.HasMoreResults)
+      {
+        FeedResponse<ApiRequestSummary> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+
+        foreach (var r in currentResultSet)
+        {
+          requestSummaries.Add(r);
+        }
+      }
+
+      return requestSummaries;
+    }
   }
 }
