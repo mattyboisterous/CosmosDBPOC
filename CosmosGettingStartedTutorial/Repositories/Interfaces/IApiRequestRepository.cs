@@ -12,6 +12,6 @@ namespace CosmosGettingStartedTutorial.Repositories.Interfaces
     Task<ApiRequest> CreateApiRequest(ApiRequest request);
     Task<IEnumerable<ApiRequest>> GetAllApiRequests();
     Task<IEnumerable<ApiRequest>> GetAllApiRequestsByApplication(string appId);
-    Task<IEnumerable<ApiRequestSummary>> GetAllApiRequestSummariesByApplication(string appId);
+    Task<IEnumerable<ApiRequestSummary>> GetAllApiRequestSummariesByApplication(string appId, TimeRange reportingRange);
   }
 }

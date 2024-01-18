@@ -77,11 +77,32 @@ namespace CosmosGettingStartedTutorial.Repositories
       return requestList;
     }
 
-    public async Task<IEnumerable<ApiRequestSummary>> GetAllApiRequestSummariesByApplication(string appId)
+    public async Task<IEnumerable<ApiRequestSummary>> GetAllApiRequestSummariesByApplication(string appId, TimeRange reportingRange)
     {
+      DateTime startDate = DateTime.UtcNow;
+      DateTime endDate = startDate;
+
+      switch (reportingRange)
+      {
+        case TimeRange.LastHour:
+          startDate = startDate.AddHours(-1);
+          break;
+        case TimeRange.Today: 
+          startDate = startDate.AddDays(-1);
+          break;
+        case TimeRange.TwoWeeks:
+          startDate = startDate.AddDays(-14);
+          break;
+        case TimeRange.ThisMonth:
+          startDate = startDate.AddDays(-30);
+          break;
+      }
+
       var sqlQueryText =
         $"SELECT req.appId, req.apiName, req.httpVerb, req.apiVersion, req.webMethod, req.subHeader, COUNT(1) AS requests " +
         $"FROM req WHERE req.appId = '{appId}' " +
+        $"AND req.requestUtcDateTime >= '{startDate.ToString("o")}' " +
+        $"AND req.requestUtcDateTime <= '{endDate.ToString("o")}' " +
         $"GROUP BY req.appId, req.apiName, req.httpVerb, req.apiVersion, req.webMethod, req.subHeader";
 
       QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);

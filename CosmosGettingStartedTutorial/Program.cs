@@ -229,7 +229,10 @@ namespace CosmosGettingStartedTutorial
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
 
-            var requestSummaries = await ApiRequestRepository.GetAllApiRequestSummariesByApplication(appId);
+            Console.Write("Please enter reporting period: 0 -> Last Hour, 1 -> Today, 2 -> Last two weeks, 3 -> Last month");
+            var period = Console.ReadLine();
+
+            var requestSummaries = await ApiRequestRepository.GetAllApiRequestSummariesByApplication(appId, (TimeRange)int.Parse(period));
 
             WriteApiRequestSummariesToConsole(requestSummaries.ToList());
             break;
