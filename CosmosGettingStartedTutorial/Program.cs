@@ -60,7 +60,7 @@ namespace CosmosGettingStartedTutorial
       Console.WriteLine("d: Create application");
       Console.WriteLine("e: Create Api key");
       Console.WriteLine("f: Regenerate Api key");
-      Console.WriteLine("f: Update Api key label");
+      Console.WriteLine("g: Update Api key label");
       Console.WriteLine("h: Delete (retire) Api key");
       Console.WriteLine("i: Get all Api Requests");
       Console.WriteLine("j: Get all Api Requests by appId");
