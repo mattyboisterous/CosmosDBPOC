@@ -13,6 +13,10 @@ namespace CosmosGettingStartedTutorial.Repositories
 {
   public class ApplicationRepository : RepositoryBase, IApplicationRepository
   {
+    public ApplicationRepository(string endpointUri, string primaryKey)
+      : base(endpointUri, primaryKey, "Application")
+    { }
+
     public ApplicationRepository(string endpointUri, string primaryKey, string containerId)
       : base(endpointUri, primaryKey, containerId)
     { }

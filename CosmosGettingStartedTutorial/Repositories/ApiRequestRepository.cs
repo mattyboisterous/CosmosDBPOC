@@ -12,6 +12,10 @@ namespace CosmosGettingStartedTutorial.Repositories
 {
   public class ApiRequestRepository : RepositoryBase, IApiRequestRepository
   {
+    public ApiRequestRepository(string endpointUri, string primaryKey)
+      : base(endpointUri, primaryKey, "ApiRequest")
+    { }
+
     public ApiRequestRepository(string endpointUri, string primaryKey, string containerId)
       : base(endpointUri, primaryKey, containerId)
     { }

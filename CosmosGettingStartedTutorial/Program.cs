@@ -75,8 +75,8 @@ namespace CosmosGettingStartedTutorial
     {
       Console.Write("Initialising repositories...");
 
-      ApplicationRepository = new ApplicationRepository(EndpointUri, PrimaryKey, "Application");
-      ApiRequestRepository = new ApiRequestRepository(EndpointUri, PrimaryKey, "ApiRequest");
+      ApplicationRepository = new ApplicationRepository(EndpointUri, PrimaryKey);
+      ApiRequestRepository = new ApiRequestRepository(EndpointUri, PrimaryKey);
 
       Console.WriteLine("Done.");
       Console.Write("Initialising dbs, containers...");
