@@ -13,11 +13,10 @@ namespace CosmosGettingStartedTutorial.Repositories.Interfaces
     Task<Application> GetApplication(string appId);
     Task<IEnumerable<Application>> GetAllApplications();
     Task<IEnumerable<Application>> GetAllApplicationsByUser(string userId);
+    Task<Application> UpdateApplicationLabel(string appId, string label);
+    Task RetireApplication(string appId);
 
-    Task<Application> CreateApiKey(string appId, ApiKey apiKey);
-    Task<bool> ValidateApiKey(string appId, string apiKey); // for Andrew...
-    Task<Application> RegenerateApiKey(string appId, string apiKey);
-    Task<Application> UpdateApiLabel(string appId, string apiKey, string label);
-    Task RetireApiKey(string appId, string apiKey);
+    Task<bool> ValidateApiKey(string apiKey);
+    Task<Application> RegenerateApiKey(string appId);
   }
 }

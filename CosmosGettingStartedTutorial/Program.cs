@@ -49,6 +49,16 @@ namespace CosmosGettingStartedTutorial
       }
     }
 
+    //Task<Application> CreateApplication(Application app);
+    //Task<Application> GetApplication(string appId); DONE
+    //Task<IEnumerable<Application>> GetAllApplications(); DONE
+    //Task<IEnumerable<Application>> GetAllApplicationsByUser(string userId); DONE
+    //Task<Application> UpdateApplicationLabel(string appId, string label);
+    //Task RetireApplication(string appId);
+
+    //Task<bool> ValidateApiKey(string apiKey);
+    //Task<Application> RegenerateApiKey(string appId);
+
     private void WriteOptionsToConsole()
     {
       Console.WriteLine();
@@ -58,14 +68,13 @@ namespace CosmosGettingStartedTutorial
       Console.WriteLine("b: Get Applications by userId");
       Console.WriteLine("c: Get Application by appId");
       Console.WriteLine("d: Create application");
-      Console.WriteLine("e: Create Api key");
-      Console.WriteLine("f: Regenerate Api key");
-      Console.WriteLine("g: Update Api key label");
-      Console.WriteLine("h: Delete (retire) Api key");
-      Console.WriteLine("i: Get all Api Requests");
-      Console.WriteLine("j: Get all Api Requests by appId");
-      Console.WriteLine("k: Get all Api Request summaries by appId");
-      Console.WriteLine("l: Create Api Request");
+      Console.WriteLine("e: Regenerate Application key");
+      Console.WriteLine("f: Update Application label");
+      Console.WriteLine("g: Delete (retire) application");
+      Console.WriteLine("h: Get all Api Requests");
+      Console.WriteLine("i: Get all Api Requests by appId");
+      Console.WriteLine("j: Get all Api Request summaries by appId");
+      Console.WriteLine("k: Create Api Request");
 
 
       Console.WriteLine("x or SPACE: Exit");
@@ -122,13 +131,13 @@ namespace CosmosGettingStartedTutorial
           case 'd':
             Console.Write("Please enter UserId: ");
             userId = Console.ReadLine();
-            Console.Write("Please enter AppId: ");
-            appId = Console.ReadLine();
             Console.Write("Please enter a name for the application: ");
             var appName = Console.ReadLine();
 
-            if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(appName))
+            if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(appName))
             {
+              appId = Guid.NewGuid().ToString();
+
               var app = await ApplicationRepository.CreateApplication(new Application()
               {
                 Id = $"{appId}.1",
@@ -136,7 +145,8 @@ namespace CosmosGettingStartedTutorial
                 UserId = userId,
                 AppId = appId,
                 AppName = appName,
-                ApiKeys = new ApiKey[] { }
+                KeyValue = Guid.NewGuid().ToString(),
+                Updated = DateTime.UtcNow
               });
 
               WriteApplicationToConsole(app);
@@ -147,21 +157,9 @@ namespace CosmosGettingStartedTutorial
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
 
-            Console.Write("Please enter a name for the new key: ");
-            var keyName = Console.ReadLine();
-
-            var now = DateTime.UtcNow;
-
-            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(keyName))
+            if (!string.IsNullOrEmpty(appId))
             {
-              var app = await ApplicationRepository.CreateApiKey(appId, new ApiKey()
-              {
-                Name = keyName,
-                Scopes = [],
-                Value = Guid.NewGuid().ToString(),
-                Created = now,
-                Updated = now
-              });
+              var app = await ApplicationRepository.RegenerateApiKey(appId);
 
               WriteApplicationToConsole(app);
             }
@@ -170,13 +168,12 @@ namespace CosmosGettingStartedTutorial
           case 'f':
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
+            Console.Write("Please enter a new label name for the api key: ");
+            var keyLabel = Console.ReadLine();
 
-            Console.Write("Please enter the existing value for the key to be regenerated: ");
-            var apiKey = Console.ReadLine();
-
-            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(apiKey))
+            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(keyLabel))
             {
-              var app = await ApplicationRepository.RegenerateApiKey(appId, apiKey);
+              var app = await ApplicationRepository.UpdateApplicationLabel(appId, keyLabel);
 
               WriteApplicationToConsole(app);
             }
@@ -185,38 +182,20 @@ namespace CosmosGettingStartedTutorial
           case 'g':
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
-            Console.Write("Please enter ApiKey: ");
-            apiKey = Console.ReadLine();
-            Console.Write("Please enter a new label name for the api key: ");
-            var keyLabel = Console.ReadLine();
 
-            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(apiKey) && !string.IsNullOrEmpty(keyLabel))
+            if (!string.IsNullOrEmpty(appId))
             {
-              var app = await ApplicationRepository.UpdateApiLabel(appId, apiKey, keyLabel);
-
-              WriteApplicationToConsole(app);
+              await ApplicationRepository.RetireApplication(appId);
             }
             break;
 
           case 'h':
-            Console.Write("Please enter AppId: ");
-            appId = Console.ReadLine();
-            Console.Write("Please enter ApiKey: ");
-            apiKey = Console.ReadLine();
-
-            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(apiKey))
-            {
-              await ApplicationRepository.RetireApiKey(appId, apiKey);
-            }
-            break;
-
-          case 'i':
             var requests = await ApiRequestRepository.GetAllApiRequests();
 
             WriteApiRequestsToConsole(requests.ToList());
             break;
 
-          case 'j':
+          case 'i':
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
 
@@ -225,7 +204,7 @@ namespace CosmosGettingStartedTutorial
             WriteApiRequestsToConsole(requests.ToList());
             break;
 
-          case 'k':
+          case 'j':
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
 
@@ -237,7 +216,7 @@ namespace CosmosGettingStartedTutorial
             WriteApiRequestSummariesToConsole(requestSummaries.ToList());
             break;
 
-          case 'l':
+          case 'k':
             Console.Write("Please enter AppId: ");
             appId = Console.ReadLine();
 
