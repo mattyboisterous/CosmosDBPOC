@@ -136,6 +136,7 @@ namespace CosmosGettingStartedTutorial
 
             if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(appName))
             {
+              var now = DateTime.UtcNow;
               appId = Guid.NewGuid().ToString();
 
               var app = await ApplicationRepository.CreateApplication(new Application()
@@ -146,7 +147,8 @@ namespace CosmosGettingStartedTutorial
                 AppId = appId,
                 AppName = appName,
                 KeyValue = Guid.NewGuid().ToString(),
-                Updated = DateTime.UtcNow
+                Created = now,
+                Updated = now
               });
 
               WriteApplicationToConsole(app);

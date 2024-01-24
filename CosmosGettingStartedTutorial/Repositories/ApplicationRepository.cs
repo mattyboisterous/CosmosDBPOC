@@ -22,15 +22,17 @@ namespace CosmosGettingStartedTutorial.Repositories
       : base(endpointUri, primaryKey, containerId)
     { }
 
-
-    //Task<bool> ValidateApiKey(string apiKey);
-    //Task<Application> RegenerateApiKey(string appId);
-
-
     public async Task<Application> CreateApplication(Application app)
     {
       try
       {
+        if (app.Created == DateTime.MinValue)
+        {
+          var now = DateTime.UtcNow;
+          app.Created = now;
+          app.Updated = now;
+        }
+
         ItemResponse<Application> dpApplicationResponse = await CosmosContainer.ReadItemAsync<Application>(app.Id, new PartitionKey(app.PartitionKey));
 
         return dpApplicationResponse.Resource;
